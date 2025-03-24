@@ -93,14 +93,15 @@ export default function LatestUpdates() {
     <section
       className={`py-20 transition-colors duration-300 ${
         mounted && theme === "dark"
-          ? "bg-gradient-to-b from-gray-900 to-gray-800"
-          : "bg-gradient-to-b from-gray-100 to-gray-200"
+          ? "bg-[#0A0B12]"
+          : "bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200"
       }`}
     >
       <div className="container mx-auto px-6" ref={containerRef}>
-        <div className="flex justify-between items-center mb-10">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-12">
           <motion.h2
-            className={`text-4xl font-extrabold transition-colors duration-300 ${
+            className={`text-4xl font-extrabold tracking-tight ${
               mounted && theme === "light" ? "text-gray-900" : "text-white"
             }`}
             initial={{ opacity: 0, y: 30 }}
@@ -111,16 +112,16 @@ export default function LatestUpdates() {
           </motion.h2>
           <Link
             href="/blog"
-            className="flex items-center text-yellow-400 hover:text-teal-400 transition-colors duration-300 font-medium"
+            className="flex items-center text-yellow-500 hover:text-yellow-400 transition-colors duration-300 font-semibold"
           >
             View All
             <motion.svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              strokeWidth={1.5}
+              strokeWidth={2}
               stroke="currentColor"
-              className="w-4 h-4 ml-1"
+              className="w-5 h-5 ml-2"
               whileHover={{ x: 5 }}
               transition={{ duration: 0.3 }}
             >
@@ -129,22 +130,40 @@ export default function LatestUpdates() {
           </Link>
         </div>
 
+        {/* Carousel Section */}
         <div className="relative group" aria-label="Latest updates carousel">
+          {/* Navigation Arrows */}
           <motion.button
             onClick={scrollPrev}
-            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all duration-300 opacity-70 hover:opacity-100 ${
+            className={`absolute left-[-20px] top-1/2 -translate-y-1/2 z-10 p-4 rounded-full transition-all duration-300 ${
               mounted && theme === "dark"
-                ? "bg-gray-800 hover:bg-gray-700 text-white"
-                : "bg-white hover:bg-gray-100 text-gray-900 shadow-lg"
-            } ${!canScrollPrev && "opacity-30 cursor-not-allowed"}`}
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
+                ? "bg-gray-800 hover:bg-gray-700 text-white shadow-glow-dark"
+                : "bg-white hover:bg-gray-100 text-gray-900 shadow-glow-light"
+            } ${!canScrollPrev && "opacity-50 cursor-not-allowed"}`}
+            // whileHover={{ scale: 1.1 }}
+            // whileTap={{ scale: 0.95 }}
             disabled={!canScrollPrev}
             aria-label="Previous slide"
           >
             <ChevronLeft className="w-6 h-6" />
           </motion.button>
 
+          <motion.button
+            onClick={scrollNext}
+            className={`absolute right-[-20px] top-1/2 -translate-y-1/2 z-10 p-4 rounded-full transition-all duration-300 ${
+              mounted && theme === "dark"
+                ? "bg-gray-800 hover:bg-gray-700 text-white shadow-glow-dark"
+                : "bg-white hover:bg-gray-100 text-gray-900 shadow-glow-light"
+            } ${!canScrollNext && "opacity-50 cursor-not-allowed"}`}
+            // whileHover={{ scale: 1.1 }}
+            // whileTap={{ scale: 0.95 }}
+            disabled={!canScrollNext}
+            aria-label="Next slide"
+          >
+            <ChevronRight className="w-6 h-6" />
+          </motion.button>
+
+          {/* Carousel Content */}
           <div className="overflow-hidden" ref={emblaRef} tabIndex={0} role="region" aria-label="Blog posts">
             <div className="flex -ml-4">
               <AnimatePresence mode="wait">
@@ -159,47 +178,53 @@ export default function LatestUpdates() {
                   >
                     <Link
                       href={`/blog/${post.title.toLowerCase().replace(/\s+/g, "-")}`}
-                      className={`block h-[420px] rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transform hover:-translate-y-3 transition-all duration-300 group ${
-                        mounted && theme === "dark" ? "bg-gray-800" : "bg-white"
-                      }`}
+                      className={`block h-[480px] rounded-xl overflow-hidden transform transition-all duration-500 group relative border border-transparent hover:border-yellow-500/30 hover:shadow-2xl ${
+                        mounted && theme === "dark" ? "bg-gray-800/80" : "bg-white"
+                      } backdrop-blur-sm`}
                       aria-label={`Read more about ${post.title}`}
                     >
-                      <div className="relative h-52 overflow-hidden">
+                      {/* Image Section */}
+                      <div className="relative h-60 overflow-hidden">
                         <Image
                           src={post.image}
                           alt={post.title}
-                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+                          className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 rounded-t-xl"
                           width={600}
                           height={400}
-                          quality={85}
+                          quality={90}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                          <span className="text-white text-sm p-4">Read Now</span>
-                        </div>
+                        {/* Gradient Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-90 transition-opacity duration-300" />
+                        {/* Badge/Tag */}
+                        <span className="absolute top-4 left-4 bg-yellow-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-md group-hover:bg-yellow-400 transition-colors duration-300">
+                          New
+                        </span>
                       </div>
-                      <div className="p-5 flex flex-col flex-grow">
+
+                      {/* Content Section */}
+                      <div className="p-6 flex flex-col flex-grow">
                         <h3
-                          className={`text-xl font-semibold mb-2 group-hover:text-yellow-400 transition-colors duration-300 line-clamp-1 ${
+                          className={`text-2xl font-extrabold mb-3 group-hover:text-yellow-500 transition-colors duration-300 line-clamp-2 ${
                             mounted && theme === "dark" ? "text-white" : "text-gray-900"
                           }`}
                         >
                           {post.title}
                         </h3>
                         <p
-                          className={`text-sm mb-4 flex-grow line-clamp-2 ${
+                          className={`text-sm mb-4 flex-grow line-clamp-3 leading-relaxed ${
                             mounted && theme === "dark" ? "text-gray-300" : "text-gray-600"
                           }`}
                         >
                           {post.excerpt}
                         </p>
                         <div
-                          className={`pt-2 flex justify-between items-center border-t ${
-                            mounted && theme === "dark" ? "border-gray-700 text-gray-400" : "border-gray-200 text-gray-600"
+                          className={`pt-4 flex justify-between items-center ${
+                            mounted && theme === "dark" ? "text-gray-400" : "text-gray-600"
                           }`}
                         >
-                          <span className="text-sm">{post.date}</span>
+                          <span className="text-sm font-medium">{post.date}</span>
                           <motion.span
-                            className="text-yellow-400 flex items-center text-sm font-medium"
+                            className="text-yellow-500 flex items-center text-sm font-semibold"
                             initial={false}
                             animate={{ x: 0 }}
                             whileHover={{ x: 5 }}
@@ -215,23 +240,18 @@ export default function LatestUpdates() {
               </AnimatePresence>
             </div>
           </div>
-
-          <motion.button
-            onClick={scrollNext}
-            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full transition-all duration-300 opacity-70 hover:opacity-100 ${
-              mounted && theme === "dark"
-                ? "bg-gray-800 hover:bg-gray-700 text-white"
-                : "bg-white hover:bg-gray-100 text-gray-900 shadow-lg"
-            } ${!canScrollNext && "opacity-30 cursor-not-allowed"}`}
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
-            disabled={!canScrollNext}
-            aria-label="Next slide"
-          >
-            <ChevronRight className="w-6 h-6" />
-          </motion.button>
         </div>
       </div>
+
+      {/* Custom CSS for Glow Effect */}
+      <style jsx>{`
+        .shadow-glow-light {
+          box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        .shadow-glow-dark {
+          box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+        }
+      `}</style>
     </section>
   )
 }

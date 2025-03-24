@@ -13,7 +13,7 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "EduBlog - Educational Resources",
+  title: "TARGETBOARD - Educational Resources",
   description: "Access comprehensive educational materials for all your academic needs",
     generator: 'v0.dev'
 }
