@@ -7,33 +7,20 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useTheme } from "next-themes"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-const slides = [
-  {
-    id: 1,
-    image: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80",
-    title: "Discover New Ways of Learning",
-    description: "Access comprehensive educational resources and innovative learning methods",
-    gradient: "from-blue-600 via-purple-500 to-pink-500"
-  },
-  {
-    id: 2,
-    image: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80",
-    title: "Expert Guidance & Support",
-    description: "Learn from industry experts and experienced educators",
-    gradient: "from-yellow-400 via-green-500 to-teal-400"
-  },
-  {
-    id: 3,
-    image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80",
-    title: "Interactive Learning Experience",
-    description: "Engage with our community and enhance your knowledge",
-    gradient: "from-orange-500 via-red-500 to-purple-500"
-  }
-]
+// Slide type definition
+type Slide = {
+  id: number
+  image: string
+  title: string
+  description: string
+  gradient: string
+}
 
 export default function Hero() {
   const [mounted, setMounted] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [slides, setSlides] = useState<Slide[]>([])
+  const [loading, setLoading] = useState(true)
   const { theme } = useTheme()
 
   useEffect(() => {
@@ -41,14 +28,68 @@ export default function Hero() {
   }, [])
 
   useEffect(() => {
+    const fetchSlides = async () => {
+      try {
+        const response = await fetch("http://64.227.133.141:1337/api/sliders?populate=*")
+        const data = await response.json()
+        
+        // Transform API data to match the required format
+        const formattedSlides = data.data.map((item: any) => ({
+          id: item.id,
+          // Use the image URL from the API response
+          image: `http://64.227.133.141:1337${item.slider_image[0].url}`,
+          title: item.title,
+          description: item.excerpt,
+          gradient: item.gradient
+        }))
+        
+        setSlides(formattedSlides)
+        setLoading(false)
+      } catch (error) {
+        console.error("Error fetching slides:", error)
+        setLoading(false)
+      }
+    }
+    
+    fetchSlides()
+  }, [])
+
+  useEffect(() => {
+    if (slides.length === 0) return
+    
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, 5000)
     return () => clearInterval(timer)
-  }, [])
+  }, [slides])
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length)
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  const nextSlide = () => {
+    if (slides.length === 0) return
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
+  }
+  
+  const prevSlide = () => {
+    if (slides.length === 0) return
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+  }
+
+  // Show loading state or return null if no slides
+  if (loading || slides.length === 0) {
+    return (
+      <section className="relative h-[600px] flex items-center justify-center bg-gradient-to-br from-blue-600/20 via-purple-500/20 to-pink-500/20">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+            <div className="absolute inset-1 border-4 border-t-transparent border-purple-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+            <div className="absolute inset-2 border-4 border-t-transparent border-pink-500 rounded-full animate-spin" style={{ animationDuration: '2s' }}></div>
+          </div>
+          <div className="text-2xl font-medium bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 bg-clip-text text-transparent animate-pulse">
+            Loading amazing content...
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="relative h-[600px] overflow-hidden">
@@ -124,7 +165,7 @@ export default function Hero() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          {/* <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button className={`px-8 py-6 bg-gradient-to-r ${slides[currentSlide].gradient} rounded-md text-lg font-semibold hover:opacity-90 shadow-lg transition-all duration-300 text-white`}>
               Start Learning
             </Button>
@@ -136,7 +177,7 @@ export default function Hero() {
             >
               Browse Courses
             </Button>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
 
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">

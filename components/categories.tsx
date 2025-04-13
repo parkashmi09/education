@@ -7,65 +7,46 @@ import { motion, AnimatePresence } from "framer-motion"
 import useEmblaCarousel from 'embla-carousel-react'
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
-const categories = [
-  { 
-    name: "State Books", 
-    items: [
-      { name: "UP Board" },
-      { name: "MP Board" },
-      { name: "Rajasthan Board" },
-      { name: "Gujarat Board" },
-    ],
-    bgColor: "bg-primary-800", // Teal (default, matches the image)
-  },
-  { 
-    name: "Books & Solutions", 
-    items: [
-      { name: "Class 6" },
-      { name: "Class 7" },
-      { name: "Class 8" },
-      { name: "Class 9" },
-      { name: "Class 10" },
-    ],
-    bgColor: "bg-primary-700", // Green
-  },
-  { 
-    name: "Bihar Board", 
-    items: [
-      { name: "Class 9" },
-      { name: "Class 10" },
-      { name: "Class 11" },
-      { name: "Class 12" },
-    ],
-    bgColor: "bg-primary-600", // Darker yellow
-  },
-  { 
-    name: "CBSE", 
-    items: [
-      { name: "Class 6" },
-      { name: "Class 7" },
-      { name: "Class 8" },
-      { name: "Class 9" },
-      { name: "Class 10" },
-      { name: "Class 11" },
-      { name: "Class 12" },
-    ],
-    bgColor: "bg-primary-500", // Yellow
-  },
-  { 
-    name: "CUET", 
-    items: [
-      { name: "Mathematics" },
-      { name: "Physics" },
-      { name: "Chemistry" },
-      { name: "Biology" },
-    ],
-    bgColor: "bg-primary-400", // Medium teal
-  },
+// Define types for API response
+type Board = {
+  id: number
+  documentId: string
+  board_name: string
+}
+
+type Class = {
+  id: number
+  documentId: string
+  class: string
+}
+
+type Subject = {
+  id: number
+  documentId: string
+  subject: string
+}
+
+type Category = {
+  id: number
+  documentId: string
+  category_name: string
+  classes: Class[]
+  boards: Board[]
+  subjects: Subject[]
+  bgColor?: string // Keep the bgColor property for styling
+}
+
+// Background colors for categories (maintain the original styling)
+const bgColors = [
+  "bg-primary-800", // Teal (default)
+  "bg-primary-700", // Green
+  "bg-primary-600", // Darker yellow
+  "bg-primary-500", // Yellow
+  "bg-primary-400", // Medium teal
 ]
 
 export default function Categories() {
-  const [activeCategory, setActiveCategory] = useState("State Books")
+  const [activeCategory, setActiveCategory] = useState<string>("")
   const [mounted, setMounted] = useState(false)
   const { theme } = useTheme()
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
@@ -77,6 +58,33 @@ export default function Categories() {
   const [canScrollPrev, setCanScrollPrev] = useState(false)
   const [canScrollNext, setCanScrollNext] = useState(true)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch("http://64.227.133.141:1337/api/categories/?populate=*")
+        const data = await response.json()
+        
+        // Transform API data and assign bgColors
+        const formattedCategories = data.data.map((category: any, index: number) => ({
+          ...category,
+          bgColor: bgColors[index % bgColors.length]
+        }))
+        
+        setCategories(formattedCategories)
+        setActiveCategory(formattedCategories[0]?.category_name || "")
+        setLoading(false)
+      } catch (error) {
+        console.error("Error fetching categories:", error)
+        setLoading(false)
+      }
+    }
+    
+    fetchCategories()
+  }, [])
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return
@@ -118,8 +126,39 @@ export default function Categories() {
     if (emblaApi) emblaApi.scrollNext()
   }, [emblaApi])
 
-  const activeItems = categories.find((cat) => cat.name === activeCategory)?.items || []
-  const activeBgColor = categories.find((cat) => cat.name === activeCategory)?.bgColor || "bg-primary-800"
+  // Helper function to get items for a category
+  const getCategoryItems = (category: Category) => {
+    if (category.boards && category.boards.length > 0) {
+      return category.boards.map(board => ({ name: board.board_name, documentId: board.documentId }))
+    } else if (category.classes && category.classes.length > 0) {
+      return category.classes.map(cls => ({ name: cls.class, documentId: cls.documentId }))
+    } else if (category.subjects && category.subjects.length > 0) {
+      return category.subjects.map(subject => ({ name: subject.subject, documentId: subject.documentId }))
+    }
+    return []
+  }
+
+  const activeItems = categories.find((cat) => cat.category_name === activeCategory) 
+    ? getCategoryItems(categories.find((cat) => cat.category_name === activeCategory)!)
+    : []
+  const activeBgColor = categories.find((cat) => cat.category_name === activeCategory)?.bgColor || "bg-primary-800"
+
+  if (loading) {
+    return (
+      <section className={`py-12 transition-colors duration-300 ${
+        mounted && theme === 'dark' ? 'bg-gray-900' : 'bg-primary-800'
+      }`}>
+        <div className="container mx-auto px-6 flex justify-center items-center py-20">
+          <div className="flex flex-col items-center gap-4">
+            <div className="relative w-12 h-12">
+              <div className="absolute inset-0 border-4 border-t-transparent border-white rounded-full animate-spin"></div>
+            </div>
+            <div className="text-white text-lg">Loading categories...</div>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className={`py-12 transition-colors duration-300 ${
@@ -166,21 +205,21 @@ export default function Categories() {
                 <motion.button
                   key={index}
                   role="tab"
-                  aria-selected={activeCategory === category.name}
-                  aria-controls={`${category.name}-panel`}
+                  aria-selected={activeCategory === category.category_name}
+                  aria-controls={`${category.category_name}-panel`}
                   className={`min-w-[150px] px-6 py-2 rounded-full font-medium text-sm transition-all duration-300 whitespace-nowrap ${
-                    activeCategory === category.name
+                    activeCategory === category.category_name
                       ? "bg-white text-primary-800 shadow-lg"
                       : "bg-transparent border border-white text-white hover:bg-white hover:text-primary-800"
                   }`}
-                  onClick={() => setActiveCategory(category.name)}
+                  onClick={() => setActiveCategory(category.category_name)}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
                 >
-                  {category.name}
+                  {category.category_name}
                 </motion.button>
               ))}
             </div>
@@ -225,7 +264,7 @@ export default function Categories() {
                   aria-labelledby={activeCategory}
                 >
                   <Link
-                    href={`/${activeCategory.toLowerCase().replace(/\s+/g, "-")}/${item.name.toLowerCase().replace(/\s+/g, "-")}`}
+                    href={`/${activeCategory.toLowerCase().replace(/\s+/g, "-")}/${item.documentId}`}
                     className="block bg-white rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 p-6 flex items-center"
                     aria-label={`View ${item.name} materials`}
                   >

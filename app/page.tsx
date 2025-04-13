@@ -5,6 +5,7 @@ import LatestUpdates from "@/components/latest-updates"
 import PopularBooks from "@/components/popular-books"
 import Newsletter from "@/components/newsletter"
 import StayConnected from "@/components/stayConnected"
+import TestimonialSlider from "@/components/testimonials"
 
 export default function Home() {
   return (
@@ -14,8 +15,9 @@ export default function Home() {
         <LatestUpdates />
         <Categories />
         {/* <PopularBooks /> */}
+        <TestimonialSlider/>
         <StayConnected/>
-        <Newsletter />
+        {/* <Newsletter /> */}
       </main>
     </div>
   )
